@@ -26,12 +26,12 @@
     // 应用层使用的 UART (与仿真器通信)
     #define UWB_UART_NUM      (UART_NUM_2)
     #define UWB_UART_TX_PIN   (GPIO_NUM_17)
-    #define UWB_UART_RX_PIN   (GPIO_NUM_18)
+    #define UWB_UART_RX_PIN   (GPIO_NUM_16)
 
     // 仿真器使用的 UART (模拟 UWB 模块)
     #define SIM_UART_NUM      (UART_NUM_1)
-    #define UWB_SIM_UART_TX_PIN (GPIO_NUM_4)
-    #define UWB_SIM_UART_RX_PIN (GPIO_NUM_5)
+    #define UWB_SIM_UART_TX_PIN (GPIO_NUM_19)
+    #define UWB_SIM_UART_RX_PIN (GPIO_NUM_18)
 
 #else
 

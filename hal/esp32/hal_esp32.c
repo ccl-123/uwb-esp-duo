@@ -81,7 +81,7 @@ void hal_uart_deinit(void) {
 int hal_uart_write(const uint8_t* data, size_t len) {
     if (g_hal_uart_port == UART_NUM_MAX) return -1;
     if (data == NULL || len == 0) return 0;
-    
+    hal_delay_ms(20);
     return uart_write_bytes(g_hal_uart_port, (const char *)data, len);
 }
 

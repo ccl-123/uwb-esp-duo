@@ -24,6 +24,9 @@
 #include "uwb_module_simulator.h" 
 #endif
 
+// HACK: 直接引用内部函数用于测试
+extern int uwb_at_send_cmd_sync(const char* cmd, char* response_buf, size_t buf_len, uint32_t timeout_ms);
+
 static const char* TAG = "UWB_APP_ESP32";
 
 /**
@@ -37,6 +40,84 @@ void ranging_data_handler(const uwb_ranging_data_t* data)
                  data->distance_cm,
                  data->rssi_dbm);
     }
+}
+
+/**
+ * @brief 测试UWB查询命令功能
+ * @details 测试多种AT查询命令以验证驱动和模块的响应。
+ */
+void test_uwb_query_commands(void)
+{
+    int ret;
+    char buffer[512] = {0};
+    
+    ESP_LOGI(TAG, "===== 开始UWB查询命令测试 =====");
+    
+    // 1. 切换到AT命令模式
+    ESP_LOGI(TAG, "切换到AT指令模式...");
+    ret = uwb_set_work_mode(UWB_MODE_AT_COMMAND);
+    if (ret != 0) {
+        ESP_LOGE(TAG, "设置AT命令模式失败");
+        // 即使失败也尝试恢复，避免模块停在未知状态
+        uwb_set_work_mode(UWB_MODE_RANGING);
+        return;
+    }
+    
+    // 等待模式切换完成
+    vTaskDelay(pdMS_TO_TICKS(100));
+    
+    // 2. 测试AT+VER查询
+    ESP_LOGI(TAG, "【测试1】查询固件版本 AT+VER");
+    memset(buffer, 0, sizeof(buffer));
+    ret = uwb_query_version(buffer, sizeof(buffer));
+    if (ret == 0) {
+        ESP_LOGI(TAG, "版本查询成功：\n%s", buffer);
+    } else {
+        ESP_LOGE(TAG, "版本查询失败");
+    }
+    vTaskDelay(pdMS_TO_TICKS(500));
+    
+    // 3. 测试AT+ALL查询
+    ESP_LOGI(TAG, "【测试2】查询所有参数 AT+ALL");
+    memset(buffer, 0, sizeof(buffer));
+    ret = uwb_query_all_params(buffer, sizeof(buffer));
+    if (ret == 0) {
+        ESP_LOGI(TAG, "全部参数查询成功：\n%s", buffer);
+    } else {
+        ESP_LOGE(TAG, "全部参数查询失败");
+    }
+    vTaskDelay(pdMS_TO_TICKS(500));
+    
+    // 4. 测试AT+ROLE?查询
+    ESP_LOGI(TAG, "【测试3】查询角色参数范围 AT+ROLE?");
+    memset(buffer, 0, sizeof(buffer));
+    ret = uwb_at_send_cmd_sync("AT+ROLE?\r\n", buffer, sizeof(buffer), 500);
+    if (ret == 0) {
+        ESP_LOGI(TAG, "角色参数范围查询成功：\n%s", buffer);
+    } else {
+        ESP_LOGE(TAG, "角色参数范围查询失败");
+    }
+    vTaskDelay(pdMS_TO_TICKS(500));
+    
+    // 5. 测试AT+PERIOD?查询
+    ESP_LOGI(TAG, "【测试4】查询测距周期参数范围 AT+PERIOD?");
+    memset(buffer, 0, sizeof(buffer));
+    ret = uwb_at_send_cmd_sync("AT+PERIOD?\r\n", buffer, sizeof(buffer), 500);
+    if (ret == 0) {
+        ESP_LOGI(TAG, "测距周期参数范围查询成功：\n%s", buffer);
+    } else {
+        ESP_LOGE(TAG, "测距周期参数范围查询失败");
+    }
+    vTaskDelay(pdMS_TO_TICKS(500));
+
+    // 6. 恢复测距模式
+    ESP_LOGI(TAG, "恢复测距模式...");
+    ret = uwb_set_work_mode(UWB_MODE_RANGING);
+    if (ret != 0) {
+        ESP_LOGE(TAG, "恢复测距模式失败");
+    }
+    
+    ESP_LOGI(TAG, "===== UWB查询命令测试完成 =====");
 }
 
 /**
@@ -156,7 +237,12 @@ void app_main(void)
         ESP_LOGI(TAG, "UWB module configured successfully. Waiting for ranging data...");
     }
 
-    // 6. 主任务循环
+    // 6. 运行UWB查询命令测试
+    ESP_LOGI(TAG, "Running UWB query command tests after 3 seconds...");
+    vTaskDelay(pdMS_TO_TICKS(3000)); // 等待3秒让模块在配置后稳定
+    test_uwb_query_commands();
+
+    // 7. 主任务循环
     while(1) {
         vTaskDelay(pdMS_TO_TICKS(10000));
         // 主任务可以留空或执行其他逻辑
