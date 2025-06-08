@@ -74,9 +74,9 @@ int main(void)
     uwb_hal_uart_config_t uart_config = {
         .device_name = UART_DEVICE,
         .baud_rate = UWB_DEFAULT_BAUD_RATE,
-        // 以下参数在 Linux HAL 中未使用
-        .rx_buffer_size = 0,
-        .tx_buffer_size = 0,
+        // 以下参数在 Linux HAL 中未使用，但为保持结构一致性而保留
+        .rx_buffer_size = UWB_BUFFER_SIZE * 2,
+        .tx_buffer_size = UWB_BUFFER_SIZE,
         .tx_pin = -1,
         .rx_pin = -1,
     };

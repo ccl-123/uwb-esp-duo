@@ -164,15 +164,18 @@ int uwb_configure_module(const uwb_settings_t* settings)
 
     HAL_LOGI("Starting UWB module configuration...");
 
-    // 1. 进入 AT 模式 (含一次防止噪声数据干扰 重试)
-    if (uwb_set_work_mode(UWB_MODE_AT_COMMAND) != 0) {
-        HAL_LOGW("Initial attempt to enter AT mode failed. Retrying once...");
-        hal_delay_ms(100); // 短暂延时后重试
-        if (uwb_set_work_mode(UWB_MODE_AT_COMMAND) != 0) {
-            HAL_LOGE("Failed to enter AT mode on second attempt. Aborting configuration.");
-            return -1; // 重试失败，直接返回错误
+    // 1. 进入 AT 模式 (多次重试)
+    int retries = 0;
+    while (uwb_set_work_mode(UWB_MODE_AT_COMMAND) != 0) {
+        retries++;
+        if (retries >= UWB_ENTER_AT_RETRIES) {
+            HAL_LOGE("Failed to enter AT mode after %d attempts. Aborting configuration.", retries);
+            return -1;
         }
+        HAL_LOGW("Initial attempt to enter AT mode failed. Retrying... (%d/%d)", retries, UWB_ENTER_AT_RETRIES);
+        hal_delay_ms(100); // 增加延时以等待模块稳定
     }
+    
     hal_delay_ms(100); // 给模块一点时间
 
     // 2. 配置角色

@@ -33,6 +33,7 @@ extern "C" {
 #define UWB_DEFAULT_NETWORK_ID 255   ///< 模块出厂默认网络ID
 #define UWB_DEFAULT_PERIOD 100       ///< 模块出厂默认测距周期 (100 * 10ms = 1s)
 #define AT_CMD_TIMEOUT_MS (2000)     ///< AT 指令响应默认超时时间
+#define UWB_ENTER_AT_RETRIES 3       ///< 进入AT指令模式的重试次数
 
 /* ------------------------- 缓冲区大小定义 ------------------------- */
 #define UWB_UART_RX_BUFFER_SIZE     (1024 * 2)  ///< UART 接收缓冲区大小
