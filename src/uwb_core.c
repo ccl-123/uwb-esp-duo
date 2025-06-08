@@ -164,10 +164,14 @@ int uwb_configure_module(const uwb_settings_t* settings)
 
     HAL_LOGI("Starting UWB module configuration...");
 
-    // 1. 进入 AT 模式
+    // 1. 进入 AT 模式 (含一次防止噪声数据干扰 重试)
     if (uwb_set_work_mode(UWB_MODE_AT_COMMAND) != 0) {
-        HAL_LOGE("Failed to enter AT mode.");
-        return -1;
+        HAL_LOGW("Initial attempt to enter AT mode failed. Retrying once...");
+        hal_delay_ms(100); // 短暂延时后重试
+        if (uwb_set_work_mode(UWB_MODE_AT_COMMAND) != 0) {
+            HAL_LOGE("Failed to enter AT mode on second attempt. Aborting configuration.");
+            return -1; // 重试失败，直接返回错误
+        }
     }
     hal_delay_ms(100); // 给模块一点时间
 
@@ -218,7 +222,7 @@ int uwb_configure_module(const uwb_settings_t* settings)
     HAL_LOGI("Configuration sent, resetting module...");
     if (uwb_software_reset() != 0) {
         HAL_LOGE("Failed to reset module.");
-        return -1;
+        goto config_error;
     }
     hal_delay_ms(1500); // 等待模块复位完成
 
@@ -226,8 +230,8 @@ int uwb_configure_module(const uwb_settings_t* settings)
     return 0;
 
 config_error:
-    HAL_LOGE("Configuration failed! Attempting to exit AT mode.");
-    uwb_set_work_mode(UWB_MODE_RANGING); // 尝试恢复
+    HAL_LOGE("Configuration failed! Attempting to revert to RANGING mode.");
+    uwb_set_work_mode(UWB_MODE_RANGING); // 尝试恢复到测距模式
     return -1;
 }
 

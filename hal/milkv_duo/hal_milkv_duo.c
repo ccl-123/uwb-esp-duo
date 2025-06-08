@@ -96,7 +96,7 @@ int hal_uart_write(const uint8_t* data, size_t len)
         return -1;
     }
     
-    hal_delay_ms(20);
+    hal_delay_ms(10);
     int bytes_written = write(g_uart_fd, data, len);
     
     if (bytes_written < 0) {
@@ -160,93 +160,3 @@ void hal_delay_ms(uint32_t ms)
 {
     usleep(ms * 1000);
 }
-
-/* ------------------------- HAL Synchronization 接口实现 (DEPRECATED) ------------------------- */
-/*
-hal_sync_handle_t hal_sync_create(void)
-{
-    sem_t* sem = (sem_t*)malloc(sizeof(sem_t));
-    if (sem == NULL) {
-        HAL_LOGE("Failed to allocate memory for semaphore.");
-        return NULL;
-    }
-    
-    // 初始化信号量，pshared=0 表示线程间共享，value=0 表示初始时不可用
-    if (sem_init(sem, 0, 0) == -1) {
-        HAL_LOGE("Failed to initialize semaphore, error: %s", strerror(errno));
-        free(sem);
-        return NULL;
-    }
-    
-    HAL_LOGD("Semaphore created: %p", (void*)sem);
-    return (hal_sync_handle_t)sem;
-}
-
-void hal_sync_destroy(hal_sync_handle_t handle)
-{
-    if (handle != NULL) {
-        sem_t* sem = (sem_t*)handle;
-        if (sem_destroy(sem) == -1) {
-            HAL_LOGE("Failed to destroy semaphore, error: %s", strerror(errno));
-        }
-        free(sem);
-        HAL_LOGD("Semaphore destroyed: %p", (void*)handle);
-    }
-}
-
-int hal_sync_wait(hal_sync_handle_t handle, uint32_t timeout_ms)
-{
-    if (handle == NULL) {
-        HAL_LOGE("Invalid semaphore handle for wait.");
-        return -1;
-    }
-    
-    sem_t* sem = (sem_t*)handle;
-    int retval;
-
-    if (timeout_ms == 0) { // 无限等待
-        retval = sem_wait(sem);
-    } else {
-        struct timespec ts;
-        if (clock_gettime(CLOCK_REALTIME, &ts) == -1) {
-            HAL_LOGE("clock_gettime error: %s", strerror(errno));
-            return -1;
-        }
-        
-        ts.tv_sec += timeout_ms / 1000;
-        ts.tv_nsec += (timeout_ms % 1000) * 1000000;
-        
-        // 处理纳秒进位
-        if (ts.tv_nsec >= 1000000000) {
-            ts.tv_sec++;
-            ts.tv_nsec -= 1000000000;
-        }
-        
-        retval = sem_timedwait(sem, &ts);
-    }
-
-    if (retval == -1) {
-        if (errno == ETIMEDOUT) {
-            HAL_LOGD("Semaphore wait timed out.");
-        } else {
-            HAL_LOGE("Semaphore wait error: %s", strerror(errno));
-        }
-        return -1; // 超时或错误均返回-1
-    }
-    
-    return 0; // 成功
-}
-
-void hal_sync_post(hal_sync_handle_t handle)
-{
-    if (handle == NULL) {
-        HAL_LOGE("Invalid semaphore handle for post.");
-        return;
-    }
-    
-    sem_t* sem = (sem_t*)handle;
-    if (sem_post(sem) == -1) {
-        HAL_LOGE("Failed to post semaphore, error: %s", strerror(errno));
-    }
-}
-*/

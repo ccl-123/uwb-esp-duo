@@ -238,8 +238,8 @@ void app_main(void)
     }
 
     // 6. 运行UWB查询命令测试
-    ESP_LOGI(TAG, "Running UWB query command tests after 3 seconds...");
-    vTaskDelay(pdMS_TO_TICKS(3000)); // 等待3秒让模块在配置后稳定
+    ESP_LOGI(TAG, "Running UWB query command tests after 10 seconds...");
+    vTaskDelay(pdMS_TO_TICKS(10000)); // 等待10秒
     test_uwb_query_commands();
 
     // 7. 主任务循环

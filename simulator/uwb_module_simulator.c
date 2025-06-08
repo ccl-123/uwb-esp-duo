@@ -118,9 +118,9 @@ int uwb_simulator_init(const uwb_simulator_uart_config_t* sim_uart_config) {
     ret = uart_set_pin(g_sim_uart_port, sim_uart_config->tx_pin, sim_uart_config->rx_pin, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
     if (ret != ESP_OK) { ESP_LOGE(TAG_SIM, "设置UART%d引脚失败", g_sim_uart_port); return -1; }
 
-    uart_flush_input(g_sim_uart_port);
-    vTaskDelay(pdMS_TO_TICKS(20)); 
-    uart_flush_input(g_sim_uart_port);
+    // uart_flush_input(g_sim_uart_port);
+    // vTaskDelay(pdMS_TO_TICKS(20)); 
+    // uart_flush_input(g_sim_uart_port);
 
     BaseType_t task_created;
     task_created = xTaskCreate(uwb_sim_uart_b_event_task, "sim_uart_event_task", 4096, NULL, 10, &g_sim_uart_event_task_handle);

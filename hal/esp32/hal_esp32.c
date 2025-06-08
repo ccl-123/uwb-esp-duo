@@ -83,7 +83,7 @@ void hal_uart_deinit(void) {
 int hal_uart_write(const uint8_t* data, size_t len) {
     if (g_hal_uart_port == UART_NUM_MAX) return -1;
     if (data == NULL || len == 0) return 0;
-    hal_delay_ms(20);
+    hal_delay_ms(10);
     return uart_write_bytes(g_hal_uart_port, (const char *)data, len);
 }
 
@@ -97,33 +97,3 @@ int hal_uart_read(uint8_t* buffer, size_t len, uint32_t timeout_ms) {
 void hal_delay_ms(uint32_t ms) {
     vTaskDelay(pdMS_TO_TICKS(ms));
 }
-
-/*
-hal_sync_handle_t hal_sync_create(void) {
-    return (hal_sync_handle_t)xSemaphoreCreateBinary();
-}
-
-void hal_sync_destroy(hal_sync_handle_t handle) {
-    if (handle != NULL) {
-        vSemaphoreDelete((SemaphoreHandle_t)handle);
-    }
-}
-
-int hal_sync_wait(hal_sync_handle_t handle, uint32_t timeout_ms) {
-    if (handle == NULL) {
-        return -1;
-    }
-    TickType_t ticks_to_wait = (timeout_ms == 0xFFFFFFFF) ? portMAX_DELAY : pdMS_TO_TICKS(timeout_ms);
-    if (xSemaphoreTake((SemaphoreHandle_t)handle, ticks_to_wait) == pdTRUE) {
-        return 0;
-    } else {
-        return -1;
-    }
-}
-
-void hal_sync_post(hal_sync_handle_t handle) {
-    if (handle != NULL) {
-        xSemaphoreGive((SemaphoreHandle_t)handle);
-    }
-}
-*/
