@@ -65,6 +65,8 @@ int hal_uart_init(const uwb_hal_uart_config_t* config)
              
     // 清空串口缓冲区
     wiringXSerialFlush(g_uart_fd);
+    hal_delay_ms(20);
+    wiringXSerialFlush(g_uart_fd);
 
     return 0;
 }

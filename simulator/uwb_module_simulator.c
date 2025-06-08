@@ -119,7 +119,7 @@ int uwb_simulator_init(const uwb_simulator_uart_config_t* sim_uart_config) {
     if (ret != ESP_OK) { ESP_LOGE(TAG_SIM, "设置UART%d引脚失败", g_sim_uart_port); return -1; }
 
     uart_flush_input(g_sim_uart_port);
-    vTaskDelay(pdMS_TO_TICKS(30)); 
+    vTaskDelay(pdMS_TO_TICKS(20)); 
     uart_flush_input(g_sim_uart_port);
 
     BaseType_t task_created;

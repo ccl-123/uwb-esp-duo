@@ -63,7 +63,9 @@ int hal_uart_init(const uwb_hal_uart_config_t* config) {
         return -1;
     }
 
-    uart_flush(g_hal_uart_port);
+    uart_flush_input(g_hal_uart_port);
+    hal_delay_ms(20);
+    uart_flush_input(g_hal_uart_port);
     HAL_LOGI("HAL UART%d initialized successfully.", g_hal_uart_port);
     return 0;
 }
