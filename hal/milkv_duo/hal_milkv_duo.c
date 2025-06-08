@@ -159,12 +159,8 @@ void hal_delay_ms(uint32_t ms)
     usleep(ms * 1000);
 }
 
-/* ------------------------- HAL Synchronization 接口实现 ------------------------- */
-
-/**
- * @brief 创建一个同步对象 (通常是二进制信号量)
- * @return 成功则返回句柄，失败则返回 NULL
- */
+/* ------------------------- HAL Synchronization 接口实现 (DEPRECATED) ------------------------- */
+/*
 hal_sync_handle_t hal_sync_create(void)
 {
     sem_t* sem = (sem_t*)malloc(sizeof(sem_t));
@@ -184,10 +180,6 @@ hal_sync_handle_t hal_sync_create(void)
     return (hal_sync_handle_t)sem;
 }
 
-/**
- * @brief 销毁一个同步对象
- * @param[in] handle 要销毁的句柄
- */
 void hal_sync_destroy(hal_sync_handle_t handle)
 {
     if (handle != NULL) {
@@ -200,13 +192,6 @@ void hal_sync_destroy(hal_sync_handle_t handle)
     }
 }
 
-/**
- * @brief 等待信号 (获取信号量)
- * @details 阻塞当前线程，直到接收到信号或超时。
- * @param[in] handle 同步对象句柄
- * @param[in] timeout_ms 超时时间 (毫秒)。如果为 0，则无限等待。
- * @return 0 表示成功接收到信号，-1 表示超时或错误
- */
 int hal_sync_wait(hal_sync_handle_t handle, uint32_t timeout_ms)
 {
     if (handle == NULL) {
@@ -250,10 +235,6 @@ int hal_sync_wait(hal_sync_handle_t handle, uint32_t timeout_ms)
     return 0; // 成功
 }
 
-/**
- * @brief 发送信号 (释放信号量)
- * @param[in] handle 同步对象句柄
- */
 void hal_sync_post(hal_sync_handle_t handle)
 {
     if (handle == NULL) {
@@ -266,3 +247,4 @@ void hal_sync_post(hal_sync_handle_t handle)
         HAL_LOGE("Failed to post semaphore, error: %s", strerror(errno));
     }
 }
+*/

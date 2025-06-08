@@ -9,12 +9,16 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <semaphore.h>
+#include <time.h>
+#include <errno.h>
 
 /* ------------------------- 内部定义 ------------------------- */
 #define AT_RESPONSE_BUF_SIZE (512) ///< AT 响应缓冲区大小
 
 /* ------------------------- 内部变量 ------------------------- */
-static hal_sync_handle_t    g_at_response_sem = NULL; ///< AT 响应同步信号量
+static sem_t                g_at_response_sem;      ///< AT 响应同步信号量
+static bool                 g_at_sem_initialized = false;
 static char                 g_at_response_buffer[AT_RESPONSE_BUF_SIZE]; ///< AT 响应缓冲区
 static bool                 g_at_response_ok = false; ///< AT 响应是否为 OK
 
@@ -32,12 +36,12 @@ void uwb_at_deinit(void);
  */
 int uwb_at_init(void)
 {
-    if (g_at_response_sem == NULL) {
-        g_at_response_sem = hal_sync_create();
-        if (g_at_response_sem == NULL) {
-            HAL_LOGE("Failed to create AT response semaphore");
+    if (!g_at_sem_initialized) {
+        if (sem_init(&g_at_response_sem, 0, 0) == -1) {
+            HAL_LOGE("Failed to create AT response semaphore, error: %s", strerror(errno));
             return -1;
         }
+        g_at_sem_initialized = true;
     }
     return 0;
 }
@@ -47,9 +51,9 @@ int uwb_at_init(void)
  */
 void uwb_at_deinit(void)
 {
-    if (g_at_response_sem != NULL) {
-        hal_sync_destroy(g_at_response_sem);
-        g_at_response_sem = NULL;
+    if (g_at_sem_initialized) {
+        sem_destroy(&g_at_response_sem);
+        g_at_sem_initialized = false;
     }
 }
 
@@ -63,14 +67,14 @@ void uwb_at_deinit(void)
  */
 int uwb_at_send_cmd_sync(const char* cmd, char* response_buf, size_t buf_len, uint32_t timeout_ms)
 {
-    if (g_at_response_sem == NULL) {
+    if (!g_at_sem_initialized) {
         HAL_LOGE("AT module not initialized.");
         return -1;
     }
 
-    // 清空上次响应并尝试获取信号量 (确保它是空的，超时1ms)
+    // 清空上次响应并排空信号量，以防上次有残留
     memset(g_at_response_buffer, 0, AT_RESPONSE_BUF_SIZE);
-    hal_sync_wait(g_at_response_sem, 1);
+    while (sem_trywait(&g_at_response_sem) == 0); // Drain the semaphore
 
     HAL_LOGD(">>> SENDING AT CMD: %s", cmd);
     
@@ -80,7 +84,20 @@ int uwb_at_send_cmd_sync(const char* cmd, char* response_buf, size_t buf_len, ui
     }
 
     // 等待响应信号
-    if (hal_sync_wait(g_at_response_sem, timeout_ms) == 0) {
+    struct timespec ts;
+    if (clock_gettime(CLOCK_REALTIME, &ts) == -1) {
+        HAL_LOGE("clock_gettime error: %s", strerror(errno));
+        return -1;
+    }
+    ts.tv_sec += timeout_ms / 1000;
+    ts.tv_nsec += (timeout_ms % 1000) * 1000000;
+    // 处理纳秒进位
+    if (ts.tv_nsec >= 1000000000) {
+        ts.tv_sec++;
+        ts.tv_nsec -= 1000000000;
+    }
+
+    if (sem_timedwait(&g_at_response_sem, &ts) == 0) {
         // 收到了响应
         if (response_buf != NULL && buf_len > 0) {
             strncpy(response_buf, g_at_response_buffer, buf_len - 1);
@@ -88,8 +105,12 @@ int uwb_at_send_cmd_sync(const char* cmd, char* response_buf, size_t buf_len, ui
         }
         return g_at_response_ok ? 0 : -1;
     } else {
-        // 等待超时
-        HAL_LOGW("Timeout waiting for response for: %s", cmd);
+        // 等待超时或错误
+        if (errno == ETIMEDOUT) {
+            HAL_LOGW("Timeout waiting for response for: %s", cmd);
+        } else {
+            HAL_LOGE("sem_timedwait error: %s", strerror(errno));
+        }
         return -1;
     }
 }
@@ -152,8 +173,8 @@ void uwb_at_handle_response_line(const char* line)
     }
 
     // 如果是最终响应，释放信号量以唤醒等待的 `uwb_at_send_cmd_sync`
-    if (is_final_response && g_at_response_sem != NULL) {
+    if (is_final_response && g_at_sem_initialized) {
         HAL_LOGD("Final response received, posting semaphore.");
-        hal_sync_post(g_at_response_sem);
+        sem_post(&g_at_response_sem);
     }
 }

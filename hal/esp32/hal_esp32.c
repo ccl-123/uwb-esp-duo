@@ -96,6 +96,7 @@ void hal_delay_ms(uint32_t ms) {
     vTaskDelay(pdMS_TO_TICKS(ms));
 }
 
+/*
 hal_sync_handle_t hal_sync_create(void) {
     return (hal_sync_handle_t)xSemaphoreCreateBinary();
 }
@@ -123,3 +124,4 @@ void hal_sync_post(hal_sync_handle_t handle) {
         xSemaphoreGive((SemaphoreHandle_t)handle);
     }
 }
+*/

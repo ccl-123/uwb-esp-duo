@@ -86,19 +86,19 @@ void hal_delay_ms(uint32_t ms);
  * @details 定义一个通用的、不透明的同步句柄类型，
  *          底层可由信号量(Semaphore)或互斥锁(Mutex)等实现。
  */
-typedef void* hal_sync_handle_t;
+// typedef void* hal_sync_handle_t; // DEPRECATED
 
 /**
  * @brief 创建一个同步对象 (通常是二进制信号量)
  * @return 成功则返回句柄，失败则返回 NULL
  */
-hal_sync_handle_t hal_sync_create(void);
+// hal_sync_handle_t hal_sync_create(void); // DEPRECATED
 
 /**
  * @brief 销毁一个同步对象
  * @param[in] handle 要销毁的句柄
  */
-void hal_sync_destroy(hal_sync_handle_t handle);
+// void hal_sync_destroy(hal_sync_handle_t handle); // DEPRECATED
 
 /**
  * @brief 等待信号 (获取信号量)
@@ -107,13 +107,13 @@ void hal_sync_destroy(hal_sync_handle_t handle);
  * @param[in] timeout_ms 超时时间 (毫秒)。如果为 0，则无限等待。
  * @return 0 表示成功接收到信号，-1 表示超时或错误
  */
-int hal_sync_wait(hal_sync_handle_t handle, uint32_t timeout_ms);
+// int hal_sync_wait(hal_sync_handle_t handle, uint32_t timeout_ms); // DEPRECATED
 
 /**
  * @brief 发送信号 (释放信号量)
  * @param[in] handle 同步对象句柄
  */
-void hal_sync_post(hal_sync_handle_t handle);
+// void hal_sync_post(hal_sync_handle_t handle); // DEPRECATED
 
 
 #ifdef __cplusplus
