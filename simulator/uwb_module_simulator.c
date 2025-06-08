@@ -216,7 +216,7 @@ static void uwb_sim_uart_b_event_task(void *pvParameters)
 
                                     // 根据数据手册 (uwb1claude.md) 处理AT指令并生成响应
                                     if (strcmp(cmd_line, "AT+VER") == 0) {
-                                        sprintf(response, "MK8000_SIM_V1.0\r\nOK\r\n");
+                                        sprintf(response, "MK8000_SIM_V1.0\r\n");
                                     } 
                                     else if (strcmp(cmd_line, "AT+RST") == 0) {
                                         sprintf(response, "OK\r\n");
@@ -373,7 +373,7 @@ static void uwb_sim_uart_b_event_task(void *pvParameters)
                                     } 
                                     else if (strcmp(cmd_line, "AT+ALL") == 0) { // 查询所有参数
                                         char all_buf[200]; // 临时缓冲区用于构建AT+ALL的响应
-                                        sprintf(all_buf, "AT+ROLE=%d\r\nAT+PWR=%d\r\nAT+PID=%d\r\nAT+PERIOD=%d\r\nAT+UART=%d\r\nAT+LPWR=%d\r\nAT+MADDR=%04X\r\nAT+SADDR0=%04X\r\nAT+SADDR1=%04X\r\nAT+SADDR2=%04X\r\nOK\r\n",
+                                        sprintf(all_buf, "AT+ROLE=%d\r\nAT+PWR=%d\r\nAT+PID=%d\r\nAT+PERIOD=%d\r\nAT+UART=%d\r\nAT+LPWR=%d\r\nAT+MADDR=%04X\r\nAT+SADDR0=%04X\r\nAT+SADDR1=%04X\r\nAT+SADDR2=%04X\r\n",
                                             g_sim_role, g_sim_power_level, g_sim_pid, g_sim_period_factor, g_sim_baud_rate, g_sim_lpwr, g_sim_maddr, g_sim_saddr0, g_sim_saddr1, g_sim_saddr2);
                                         strcpy(response, all_buf);
                                     } 
